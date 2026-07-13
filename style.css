@@ -1,0 +1,159 @@
+/* Import Google Font untuk Tampilan Modern & Clean */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;900&display=swap');
+
+body {
+    font-family: 'Quicksand', sans-serif;
+    background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
+}
+
+/* ==========================================================================
+   SIDEBAR CUSTOMIZATION & ANIMATION
+   ========================================================================== */
+aside nav button {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+aside nav button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 4px;
+    height: 60%;
+    background-color: #a855f7;
+    border-radius: 0 4px 4px 0;
+    transition: transform 0.2s ease;
+}
+
+aside nav button:hover::before,
+aside nav button.bg-purple-600::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+aside nav button:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================================================
+   INLINE INPUTS & SELECTS FORM STYLING
+   ========================================================================== */
+input[type="text"],
+input[type="number"],
+select {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #e9d5ff !important;
+    background-color: #ffffff;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    border-color: #a855f7 !important;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15) !important;
+    background-color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Hilangkan Spin Buttons bawaan browser pada Input Number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* ==========================================================================
+   DASHBOARD CARDS & GLASSMORPHISM EFFECT
+   ========================================================================== */
+.bg-white {
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.95);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#view-dashboard .bg-white:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -5px rgba(147, 51, 234, 0.1), 0 8px 8px -5px rgba(147, 51, 234, 0.04);
+}
+
+/* ==========================================================================
+   CUSTOM SCRAPER SCROLLBAR STYLE
+   ========================================================================== */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f3e8ff;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #c084fc;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a855f7;
+}
+
+/* ==========================================================================
+   PODIUM KAHOOT EFFECTS & ANIMATIONS
+   ========================================================================== */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0px); }
+}
+
+.fa-crown {
+    animation: float 2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 6px rgba(251, 191, 36, 0.4));
+}
+
+#podium-rank-1:hover {
+    transform: scale(1.03) translateY(-24px) !important;
+}
+
+#podium-rank-2:hover,
+#podium-rank-3:hover {
+    transform: scale(1.03);
+}
+
+/* ==========================================================================
+   PRINT OPTIMIZATION LAYOUTS
+   ========================================================================== */
+@media print {
+    aside, header, button, .no-print, .bg-indigo-950, #donutChartCanvas {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    main {
+        padding: 0 !important;
+        background: white !important;
+    }
+    .view-content {
+        display: block !important;
+    }
+    #view-dashboard, #view-kriteria, #view-alternatif, #view-penilaian, #view-perhitungan {
+        display: none !important;
+    }
+    .bg-white {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+    th, td {
+        border: 1px solid #ddd !important;
+        padding: 8px !important;
+    }
+}
