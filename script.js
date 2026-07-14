@@ -1,7 +1,7 @@
 // STATE MANAGEMENT & DATA SEEDING (JURNAL DATA)
 let kriteria = [];
 let alternatif = [];
-let donutChartInstance = null;
+let barChartInstance = null; 
 
 const DEFAULT_KRITERIA = [
     { id: 'C1', name: 'Tinggi Badan', type: 'benefit', weight: 0.13 },
@@ -48,7 +48,6 @@ function resetToDefaultData() {
     renderAll();
 }
 
-// ROUTING SPA VIEW SWITCHER
 function switchView(viewId) {
     document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
     document.getElementById(`view-${viewId}`).classList.remove('hidden');
@@ -60,7 +59,6 @@ function switchView(viewId) {
         mainCard.classList.remove('hidden');
     }
 
-    // Sidebar highlight configurations (Kahoot Purple Accent Styles)
     document.querySelectorAll('nav button').forEach(btn => {
         btn.classList.remove('bg-purple-600', 'text-white', 'shadow-md');
         btn.classList.add('hover:bg-indigo-900/50', 'hover:text-white');
@@ -75,9 +73,9 @@ function switchView(viewId) {
     const titles = {
         dashboard: "Dashboard",
         kriteria: "Pengaturan Variabel Kriteria",
-        alternatif: "Daftar Calon Anggota",
-        penilaian: "Data Pendaftar Calon Anggota",
-        perhitungan: "Proses Matriks & Jarak Ideal (TOPSIS Core)",
+        alternatif: "Daftar Calon Anggota (Alternatif)",
+        penilaian: "Pengisian Nilai Matriks Keputusan Awal",
+        perhitungan: "Penghitungan Metode TOPSIS",
         ranking: "Hasil Pemeringkatan Akhir Kompetensi"
     };
     document.getElementById('page-title').innerText = titles[viewId] || "Sistem SPK";
@@ -85,7 +83,7 @@ function switchView(viewId) {
     renderAll();
 }
 
-// WEIGHT NORMALIZATION FOR TOPSIS INTERNAL CALCULATIONS
+// WEIGHT NORMALIZATION
 function getNormalizedWeights() {
     let sum = kriteria.reduce((acc, curr) => acc + parseFloat(curr.weight), 0);
     return kriteria.map(c => ({
@@ -94,7 +92,7 @@ function getNormalizedWeights() {
     }));
 }
 
-// CORE METODE TOPSIS CALCULATIONS
+// TOPSIS MATHEMATICAL LOGIC
 function hitungTOPSIS() {
     if (alternatif.length === 0 || kriteria.length === 0) return null;
     
@@ -110,13 +108,20 @@ function hitungTOPSIS() {
         pembagi[c.id] = Math.sqrt(sumSquare);
     });
 
-    let matriksV = alternatif.map(a => {
-        let rowV = { id: a.id, name: a.name, values: {} };
+    let matriksR = alternatif.map(a => {
+        let rowR = { id: a.id, name: a.name, values: {} };
         kriteria.forEach(c => {
             let val = a.values[c.id] || 0;
-            let normX = pembagi[c.id] > 0 ? val / pembagi[c.id] : 0;
+            rowR.values[c.id] = pembagi[c.id] > 0 ? val / pembagi[c.id] : 0;
+        });
+        return rowR;
+    });
+
+    let matriksV = matriksR.map(rowR => {
+        let rowV = { id: rowR.id, name: rowR.name, values: {} };
+        kriteria.forEach(c => {
             let w = normWeights.find(nw => nw.id === c.id).normWeight;
-            rowV.values[c.id] = normX * w;
+            rowV.values[c.id] = rowR.values[c.id] * w;
         });
         return rowV;
     });
@@ -127,9 +132,7 @@ function hitungTOPSIS() {
     kriteria.forEach(c => {
         let allValuesV = matriksV.map(row => row.values[c.id]);
         if (allValuesV.length === 0) {
-            idealPositif[c.id] = 0;
-            idealNegatif[c.id] = 0;
-            return;
+            idealPositif[c.id] = 0; idealNegatif[c.id] = 0; return;
         }
         if (c.type === 'benefit') {
             idealPositif[c.id] = Math.max(...allValuesV);
@@ -141,130 +144,170 @@ function hitungTOPSIS() {
     });
 
     let hasilAkhir = matriksV.map(row => {
-        let dPos = 0;
-        let dNeg = 0;
-
+        let dPos = 0; let dNeg = 0;
         kriteria.forEach(c => {
             let diffPos = row.values[c.id] - (idealPositif[c.id] || 0);
             let diffNeg = row.values[c.id] - (idealNegatif[c.id] || 0);
-            dPos += diffPos * diffPos;
-            dNeg += diffNeg * diffNeg;
+            dPos += diffPos * diffPos; dNeg += diffNeg * diffNeg;
         });
-
-        dPos = Math.sqrt(dPos);
-        dNeg = Math.sqrt(dNeg);
-
+        dPos = Math.sqrt(dPos); dNeg = Math.sqrt(dNeg);
         let vValue = (dNeg + dPos) > 0 ? dNeg / (dNeg + dPos) : 0;
 
-        return {
-            id: row.id,
-            name: row.name,
-            dPos: dPos,
-            dNeg: dNeg,
-            v: vValue
-        };
+        return { id: row.id, name: row.name, dPos: dPos, dNeg: dNeg, v: vValue };
     });
 
-    return { matriksV, idealPositif, idealNegatif, hasilAkhir };
+    return { pembagi, matriksR, matriksV, idealPositif, idealNegatif, hasilAkhir };
 }
 
-// RENDER ALL DOM ELEMENT INTERFACES UI
 function renderAll() {
-    updateDashboardStats();
     renderKriteriaTable();
     renderAlternatifTable();
     renderPenilaianTable();
     
     const hasilTopsis = hitungTOPSIS();
+    updateProgressSystem(); // Update Progress Workflow
+    
     if(hasilTopsis) {
         renderPerhitunganTable(hasilTopsis);
         renderRankingTable(hasilTopsis);
-        updateDashboardVisuals(hasilTopsis); 
+        updateDashboardPremiumPanel(hasilTopsis); 
     }
 }
 
-function updateDashboardStats() {
-    document.getElementById('dash-count-kriteria').innerText = kriteria.length;
-    document.getElementById('dash-count-alternatif').innerText = alternatif.length;
+// PROGRESS WORKFLOW TRACKER INDICATORS
+function updateProgressSystem() {
+    const s1 = kriteria.length > 0;
+    const s2 = alternatif.length > 0;
+    
+    let s3 = s2 && kriteria.every(c => alternatif.every(a => a.values[c.id] !== undefined && a.values[c.id] !== ""));
+    const hasilTopsis = hitungTOPSIS();
+    const s4 = hasilTopsis && hasilTopsis.hasilAkhir.length > 0 && kriteria.length > 0;
+
+    const steps = [
+        { id: 'prog-step-1', status: s1 },
+        { id: 'prog-step-2', status: s2 },
+        { id: 'prog-step-3', status: s3 },
+        { id: 'prog-step-4', status: s4 }
+    ];
+
+    steps.forEach(st => {
+        const el = document.getElementById(st.id);
+        const ind = el.querySelector('.indicator-status');
+        if(st.status) {
+            el.className = "p-3 rounded-xl border border-emerald-200 bg-emerald-50/50 flex items-center justify-between";
+            ind.className = "indicator-status text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700";
+            ind.innerText = "Selesai";
+        } else {
+            el.className = "p-3 rounded-xl border border-rose-100 bg-rose-50/20 flex items-center justify-between";
+            ind.className = "indicator-status text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700";
+            ind.innerText = "Belum";
+        }
+    });
 }
 
-// INJECT DYNAMIC DATA KE LAYOUT TOPSIS SUMMARY & CHART DONUT
-function updateDashboardVisuals(data) {
+// PREMIUM DASHBOARD STATS, LEADERBOARD, & HORIZONTAL BAR CHART
+function updateDashboardPremiumPanel(data) {
     if (!data || data.hasilAkhir.length === 0) return;
-
     let sorted = [...data.hasilAkhir].sort((a,b) => b.v - a.v);
 
-    document.getElementById('dash-info-tersedia').innerHTML = `<i class="far fa-list-alt text-purple-600 mr-1.5"></i> ${alternatif.length} hasil tersedia`;
-    document.getElementById('dash-box-total').innerText = alternatif.length;
+    // 1. Set Info Utama Card
+    document.getElementById('stat-kriteria').innerText = kriteria.length;
+    document.getElementById('stat-alternatif').innerText = alternatif.length;
+    document.getElementById('stat-kandidat-terbaik').innerText = `${sorted[0].id} (${sorted[0].name})`;
+    document.getElementById('stat-preferensi-tinggi').innerText = sorted[0].v.toFixed(4);
 
-    const top3Container = document.getElementById('dash-top3-container');
-    top3Container.innerHTML = `<p class="text-xs font-bold text-gray-400 flex items-center justify-center lg:justify-start mb-1">👑 Top 3 Kandidat Terbaik</p>`;
+    // 2. Render Leaderboard Desain Premium (Top 3) dengan Progress Bar & Badge
+    const leadContainer = document.getElementById('dash-leaderboard-container');
+    leadContainer.innerHTML = '';
     
     let limit = sorted.length > 3 ? 3 : sorted.length;
     for(let i = 0; i < limit; i++) {
         let item = sorted[i];
         let rankNum = i + 1;
-        let badgeColor = rankNum === 1 ? 'bg-amber-100 text-amber-600 border border-amber-200' : rankNum === 2 ? 'bg-slate-100 text-slate-500' : 'bg-orange-100 text-orange-600';
+        let icon = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : '🥉';
         
-        top3Container.innerHTML += `
-            <div class="bg-white border border-purple-100 rounded-xl p-3 flex justify-between items-center shadow-xs">
-                <div class="flex items-center space-x-3">
-                    <div class="${badgeColor} w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-xs">
-                        ${rankNum}
+        // Penentuan Badge Kompetensi berdasarkan Nilai Preferensi V
+        let badgeText = 'Good';
+        let badgeClass = 'bg-blue-50 text-blue-600 border-blue-100';
+        if(item.v >= 0.80) {
+            badgeText = 'Excellent';
+            badgeClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+        } else if(item.v >= 0.70) {
+            badgeText = 'Very Good';
+            badgeClass = 'bg-purple-50 text-purple-600 border-purple-200';
+        }
+        
+        let barWidth = (item.v * 100).toFixed(0);
+
+        leadContainer.innerHTML += `
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 shadow-2xs hover:scale-[1.01] transition-all duration-200">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">${icon}</span>
+                        <div>
+                            <span class="text-xs font-bold text-slate-800">${item.id}</span>
+                            <span class="text-[10px] text-slate-400 block -mt-0.5">${item.name}</span>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-slate-800">${item.id}</h4>
-                        <p class="text-[10px] text-gray-400 font-medium">${item.name}</p>
-                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border ${badgeClass}">${badgeText}</span>
                 </div>
-                <div class="text-right">
-                    <span class="text-sm font-mono font-bold text-purple-600">${item.v.toFixed(4)}</span>
-                    <p class="text-[9px] text-gray-400 font-medium tracking-tight">Ranking #${rankNum}</p>
+                <div class="flex items-center space-x-2">
+                    <div class="flex-1 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-purple-600 h-full rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold text-purple-600">${item.v.toFixed(4)}</span>
                 </div>
             </div>
         `;
     }
 
+    // 3. Render Horizontal Bar Chart (Top 10 Sebaran Nilai Preferensi)
     let limitChart = sorted.length > 10 ? 10 : sorted.length;
-    let chartLabels = sorted.slice(0, limitChart).map(item => item.id);
+    let chartLabels = sorted.slice(0, limitChart).map(item => `${item.id}`);
     let chartDataValues = sorted.slice(0, limitChart).map(item => item.v);
 
-    const ctx = document.getElementById('donutChartCanvas').getContext('2d');
-    
-    if (donutChartInstance) {
-        donutChartInstance.destroy();
-    }
+    const ctx = document.getElementById('horizontalBarChartCanvas').getContext('2d');
+    if (barChartInstance) barChartInstance.destroy();
 
-    donutChartInstance = new Chart(ctx, {
-        type: 'doughnut',
+    barChartInstance = new Chart(ctx, {
+        type: 'bar',
         data: {
             labels: chartLabels,
             datasets: [{
+                label: 'Nilai Preferensi (Vi)',
                 data: chartDataValues,
-                backgroundColor: [
-                    '#a855f7', '#8b5cf6', '#6366f1', '#ec4899', '#3b82f6',
-                    '#10b981', '#f43f5e', '#14b8a6', '#d946ef', '#94a3b8'
-                ],
-                borderWidth: 2,
-                borderColor: '#ffffff'
+                backgroundColor: 'rgba(147, 51, 234, 0.75)',
+                hoverBackgroundColor: 'rgba(147, 51, 234, 0.95)',
+                borderRadius: 6,
+                borderWidth: 0,
+                barThickness: 14
             }]
         },
         options: {
+            indexAxis: 'y', // Mengubah Orientasi menjadi Bar Chart Horizontal
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return ` ${context.label}: ${context.raw.toFixed(4)}`;
-                        }
-                    }
-                }
-            },
-            cutout: '65%'
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { max: 1, grid: { color: '#f1f5f9' }, ticks: { font: { size: 9, family: 'Quicksand' } } },
+                y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold', family: 'Quicksand' } } }
+            }
         }
     });
+
+    // 4. Update Panel Ringkasan Komparasi Statistik Matematika
+    let totalKandidat = alternatif.length;
+    let jumlahPenilaian = kriteria.length * alternatif.length;
+    let minPref = Math.min(...sorted.map(x => x.v));
+    let sumPref = sorted.reduce((acc, curr) => acc + curr.v, 0);
+    let avgPref = sumPref / totalKandidat;
+
+    document.getElementById('summary-total-kandidat').innerText = totalKandidat;
+    document.getElementById('summary-jumlah-penilaian').innerText = jumlahPenilaian;
+    document.getElementById('summary-pref-tertinggi').innerText = sorted[0].v.toFixed(4);
+    document.getElementById('summary-pref-terendah').innerText = minPref.toFixed(4);
+    document.getElementById('summary-pref-rata').innerText = avgPref.toFixed(4);
+    document.getElementById('summary-status-hitung').innerText = kriteria.length > 0 ? "Calculated" : "Idle";
 }
 
 // INLINE EDITING: DATA KRITERIA
@@ -320,79 +363,40 @@ function updateKriteriaField(id, field, value) {
             let newId = value.trim().toUpperCase();
             if(!newId || kriteria.some(x => x.id === newId && x !== kriteria[idx])) {
                 showAlert('Kode kriteria tidak valid atau sudah digunakan!', 'error');
-                renderKriteriaTable();
-                return;
+                renderKriteriaTable(); return;
             }
-            alternatif.forEach(a => {
-                a.values[newId] = a.values[id];
-                delete a.values[id];
-            });
-            kriteria[idx].id = newId;
-            renderAll();
-            return;
+            alternatif.forEach(a => { a.values[newId] = a.values[id]; delete a.values[id]; });
+            kriteria[idx].id = newId; renderAll(); return;
         } else {
             kriteria[idx][field] = value;
         }
-
-        updateDashboardStats();
-        updateKriteriaSummary();
-        
-        const normWeights = getNormalizedWeights();
-        const rows = document.getElementById('table-kriteria-body').rows;
-        kriteria.forEach(c => {
-            let nw = normWeights.find(n => n.id === c.id).normWeight;
-            for(let row of rows) {
-                let inputId = row.cells[0].querySelector('input').value;
-                if(inputId === c.id) {
-                    row.cells[4].innerText = nw.toFixed(4);
-                }
-            }
-        });
-
-        const hasilTopsis = hitungTOPSIS();
-        if(hasilTopsis) {
-            renderPerhitunganTable(hasilTopsis);
-            renderRankingTable(hasilTopsis);
-            updateDashboardVisuals(hasilTopsis);
-        }
+        renderAll();
     }
 }
 
 function updateKriteriaSummary() {
     const summaryEl = document.getElementById('kriteria-summary-badge');
     let totalAsli = kriteria.reduce((acc, curr) => acc + parseFloat(curr.weight), 0);
-    
     if (Math.abs(totalAsli - 1.0) < 0.0001) {
         summaryEl.className = "mt-2 text-xs font-semibold text-emerald-700 bg-emerald-50 p-2 rounded-xl inline-block border border-emerald-200";
         summaryEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Total bobot: ${totalAsli.toFixed(3)} ✓`;
     } else {
         summaryEl.className = "mt-2 text-xs font-semibold text-red-800 bg-red-50 p-2 rounded-xl inline-flex items-center space-x-3 border border-red-200 shadow-xs";
-        summaryEl.innerHTML = `
-            <span>Total bobot: ${totalAsli.toFixed(3)} — harus sama dengan 1.000</span>
-            <button onclick="eksekusiNormalisasiBobot()" class="bg-white hover:bg-red-100 text-red-700 border border-red-200 rounded-lg px-2.5 py-1 font-sans font-bold shadow-xs transition">Normalize</button>
-        `;
+        summaryEl.innerHTML = `<span>Total bobot: ${totalAsli.toFixed(3)} — harus sama dengan 1.000</span><button onclick="eksekusiNormalisasiBobot()" class="bg-white hover:bg-red-100 text-red-700 border border-red-200 rounded-lg px-2.5 py-1 font-sans font-bold shadow-xs transition">Normalize</button>`;
     }
 }
 
 function eksekusiNormalisasiBobot() {
     let sum = kriteria.reduce((acc, curr) => acc + parseFloat(curr.weight), 0);
-    if(sum <= 0) {
-        showAlert('Total bobot saat ini nol, tidak bisa dinormalisasi!', 'error');
-        return;
-    }
-    
+    if(sum <= 0) return;
     let totalDistribusi = 0;
     for (let i = 0; i < kriteria.length - 1; i++) {
         let bobotBaru = parseFloat((parseFloat(kriteria[i].weight) / sum).toFixed(4));
-        kriteria[i].weight = bobotBaru;
-        totalDistribusi += bobotBaru;
+        kriteria[i].weight = bobotBaru; totalDistribusi += bobotBaru;
     }
-    
     if (kriteria.length > 0) {
-        let sisa = 1.0 - totalDistribusi;
-        kriteria[kriteria.length - 1].weight = parseFloat(sisa.toFixed(4));
+        let sisa = 1.0 - totalDistribusi; kriteria[kriteria.length - 1].weight = parseFloat(sisa.toFixed(4));
     }
-    
     showAlert('Bobot kriteria berhasil dinormalisasi secara presisi!', 'success');
     renderAll();
 }
@@ -400,10 +404,7 @@ function eksekusiNormalisasiBobot() {
 function addNewKriteria() {
     let nextNum = kriteria.length + 1;
     let newId = `C${nextNum}`;
-    while(kriteria.some(x => x.id === newId)) {
-        nextNum++;
-        newId = `C${nextNum}`;
-    }
+    while(kriteria.some(x => x.id === newId)) { nextNum++; newId = `C${nextNum}`; }
     kriteria.push({ id: newId, name: `Kriteria Baru ${nextNum}`, type: 'benefit', weight: 0.05 });
     alternatif.forEach(a => a.values[newId] = 0);
     renderAll();
@@ -449,35 +450,21 @@ function updateAlternatifField(id, field, value) {
             let newId = value.trim().toUpperCase();
             if(!newId || alternatif.some(x => x.id === newId && x !== alternatif[idx])) {
                 showAlert('Kode alternatif tidak valid atau sudah terpakai!', 'error');
-                renderAlternatifTable();
-                return;
+                renderAlternatifTable(); return;
             }
-            alternatif[idx].id = newId;
-            renderAll();
-            return;
+            alternatif[idx].id = newId; renderAll(); return;
         } else {
             alternatif[idx][field] = value;
         }
-        
-        updateDashboardStats();
-        const hasilTopsis = hitungTOPSIS();
-        if(hasilTopsis) {
-            renderPerhitunganTable(hasilTopsis);
-            renderRankingTable(hasilTopsis);
-            updateDashboardVisuals(hasilTopsis);
-        }
+        renderAll();
     }
 }
 
 function addNewAlternatif() {
     let nextNum = alternatif.length + 1;
     let newId = `A${nextNum}`;
-    while(alternatif.some(x => x.id === newId)) {
-        nextNum++;
-        newId = `A${nextNum}`;
-    }
-    let newValues = {};
-    kriteria.forEach(c => newValues[c.id] = 0);
+    while(alternatif.some(x => x.id === newId)) { nextNum++; newId = `A${nextNum}`; }
+    let newValues = {}; kriteria.forEach(c => newValues[c.id] = 0);
     alternatif.push({ id: newId, name: `Kandidat Baru ${nextNum}`, values: newValues });
     renderAll();
 }
@@ -491,33 +478,21 @@ function deleteAlternatif(id) {
 function renderPenilaianTable() {
     const head = document.getElementById('table-penilaian-head');
     const body = document.getElementById('table-penilaian-body');
-    
     if (kriteria.length === 0) {
         head.innerHTML = '<th class="p-3 text-center text-gray-400">Tidak ada kriteria tersedia</th>';
-        body.innerHTML = '';
-        return;
+        body.innerHTML = ''; return;
     }
-
     head.innerHTML = '<th class="p-3 font-semibold w-48 text-slate-700">Alternatif</th>';
-    kriteria.forEach(c => {
-        head.innerHTML += `<th class="p-3 font-semibold text-center w-24 text-slate-700">${c.id}</th>`;
-    });
+    kriteria.forEach(c => { head.innerHTML += `<th class="p-3 font-semibold text-center w-24 text-slate-700">${c.id}</th>`; });
     
     body.innerHTML = '';
     alternatif.forEach(a => {
         let rowHtml = `<tr class="border-b border-purple-50/60 hover:bg-purple-50/20"><td class="p-3 font-bold text-indigo-950 bg-purple-50/10">${a.id} (${a.name})</td>`;
         kriteria.forEach(c => {
             let currentVal = a.values[c.id] !== undefined ? a.values[c.id] : 0;
-            rowHtml += `
-                <td class="p-1 text-center">
-                    <input type="number" step="0.01" value="${currentVal}" 
-                        oninput="updateCellNilai('${a.id}', '${c.id}', this.value)" 
-                        class="w-20 border border-purple-200 rounded-lg p-1 text-center focus:ring-2 focus:ring-purple-400 outline-none font-mono text-xs">
-                </td>
-            `;
+            rowHtml += `<td class="p-1 text-center"><input type="number" step="0.01" value="${currentVal}" oninput="updateCellNilai('${a.id}', '${c.id}', this.value)" class="w-20 border border-purple-200 rounded-lg p-1 text-center focus:ring-2 focus:ring-purple-400 outline-none font-mono text-xs"></td>`;
         });
-        rowHtml += '</tr>';
-        body.innerHTML += rowHtml;
+        rowHtml += '</tr>'; body.innerHTML += rowHtml;
     });
 }
 
@@ -525,25 +500,33 @@ function updateCellNilai(altId, critId, value) {
     let altIndex = alternatif.findIndex(a => a.id === altId);
     if(altIndex !== -1) {
         alternatif[altIndex].values[critId] = parseFloat(value) || 0;
-        
-        const hasilTopsis = hitungTOPSIS();
-        if(hasilTopsis) {
-            renderPerhitunganTable(hasilTopsis);
-            renderRankingTable(hasilTopsis);
-            updateDashboardVisuals(hasilTopsis);
-        }
+        renderAll();
     }
 }
 
-// PERHITUNGAN OUTPUT GENERATION
+// RENDER PERHITUNGAN TABLES
 function renderPerhitunganTable(data) {
+    const rHead = document.getElementById('table-r-head');
+    const rPembagi = document.getElementById('table-r-pembagi');
+    const rBody = document.getElementById('table-r-body');
     const vHead = document.getElementById('table-v-head');
     const vBody = document.getElementById('table-v-body');
     
-    if(!data || kriteria.length === 0) {
-        vHead.innerHTML = ''; vBody.innerHTML = '';
-        return;
-    }
+    if(!data || kriteria.length === 0) return;
+
+    rHead.innerHTML = '<th class="p-3 font-semibold text-slate-700">PEMBAGI / ALTERNATIF</th>';
+    rPembagi.innerHTML = '<td class="p-3 font-bold bg-purple-100 text-purple-950">NILAI PEMBAGI</td>';
+    kriteria.forEach(c => { 
+        rHead.innerHTML += `<th class="p-3 font-semibold text-center text-slate-700">${c.id}</th>`;
+        rPembagi.innerHTML += `<td class="p-3 text-center text-indigo-950">${(data.pembagi[c.id] || 0).toFixed(3)}</td>`;
+    });
+    
+    rBody.innerHTML = '';
+    data.matriksR.forEach(row => {
+        let rowHtml = `<tr class="border-b border-purple-50/40 hover:bg-purple-50/20"><td class="p-3 font-bold font-sans text-indigo-950">${row.id}</td>`;
+        kriteria.forEach(c => { rowHtml += `<td class="p-3 text-center text-slate-600">${(row.values[c.id] || 0).toFixed(3)}</td>`; });
+        rowHtml += '</tr>'; rBody.innerHTML += rowHtml;
+    });
 
     vHead.innerHTML = '<th class="p-3 font-semibold text-slate-700">Alternatif</th>';
     kriteria.forEach(c => { vHead.innerHTML += `<th class="p-3 font-semibold text-center text-slate-700">${c.id}</th>`; });
@@ -551,77 +534,43 @@ function renderPerhitunganTable(data) {
     vBody.innerHTML = '';
     data.matriksV.forEach(row => {
         let rowHtml = `<tr class="border-b border-purple-50/40 hover:bg-purple-50/20 font-mono"><td class="p-3 font-bold font-sans text-indigo-950">${row.id}</td>`;
-        kriteria.forEach(c => {
-            let val = row.values[c.id] !== undefined ? row.values[c.id] : 0;
-            rowHtml += `<td class="p-3 text-center text-slate-600">${val.toFixed(4)}</td>`;
-        });
-        rowHtml += '</tr>';
-        vBody.innerHTML += rowHtml;
+        kriteria.forEach(c => { rowHtml += `<td class="p-3 text-center text-slate-600">${(row.values[c.id] || 0).toFixed(4)}</td>`; });
+        rowHtml += '</tr>'; vBody.innerHTML += rowHtml;
     });
 
     let txtPos = ""; let txtNeg = "";
     kriteria.forEach(c => {
-        let pVal = data.idealPositif[c.id] !== undefined ? data.idealPositif[c.id] : 0;
-        let nVal = data.idealNegatif[c.id] !== undefined ? data.idealNegatif[c.id] : 0;
-        txtPos += `${c.id} (${c.type[0].toUpperCase()}): ${pVal.toFixed(4)} | `;
-        txtNeg += `${c.id} (${c.type[0].toUpperCase()}): ${nVal.toFixed(4)} | `;
+        txtPos += `${c.id} (${c.type[0].toUpperCase()}): ${(data.idealPositif[c.id] || 0).toFixed(4)} | `;
+        txtNeg += `${c.id} (${c.type[0].toUpperCase()}): ${(data.idealNegatif[c.id] || 0).toFixed(4)} | `;
     });
     document.getElementById('ideal-positif-output').innerText = txtPos || '-';
     document.getElementById('ideal-negatif-output').innerText = txtNeg || '-';
 
-    const dBody = document.getElementById('table-jarak-body');
-    dBody.innerHTML = '';
+    const dBody = document.getElementById('table-jarak-body'); dBody.innerHTML = '';
     data.hasilAkhir.forEach(row => {
-        dBody.innerHTML += `
-            <tr class="border-b border-purple-50/40 hover:bg-purple-50/20">
-                <td class="p-2.5 font-sans font-medium text-indigo-950">${row.id} - ${row.name}</td>
-                <td class="p-2.5 text-emerald-600 font-bold">${row.dPos.toFixed(5)}</td>
-                <td class="p-2.5 text-rose-600 font-bold">${row.dNeg.toFixed(5)}</td>
-            </tr>
-        `;
+        dBody.innerHTML += `<tr class="border-b border-purple-50/40 hover:bg-purple-50/20"><td class="p-2.5 font-sans font-medium text-indigo-950">${row.id} - ${row.name}</td><td class="p-2.5 text-emerald-600 font-bold">${row.dPos.toFixed(5)}</td><td class="p-2.5 text-rose-600 font-bold">${row.dNeg.toFixed(5)}</td></tr>`;
     });
 }
 
 function renderRankingTable(data) {
-    const tbody = document.getElementById('table-ranking-body');
-    tbody.innerHTML = '';
-    
-    if (!data || data.hasilAkhir.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">Tidak ada data untuk diranking</td></tr>';
-        for(let r=1; r<=3; r++) {
-            document.getElementById(`podium-name-${r}`).innerText = "-";
-            document.getElementById(`podium-value-${r}`).innerText = "0.0000";
-        }
-        return;
-    }
-
+    const tbody = document.getElementById('table-ranking-body'); tbody.innerHTML = '';
+    if (!data || data.hasilAkhir.length === 0) return;
     let sorted = [...data.hasilAkhir].sort((a,b) => b.v - a.v);
     
-    // SUNTIK DATA PODIUM JUARA TOP 3
     if (sorted[0]) document.getElementById('podium-name-1').innerText = `${sorted[0].id}\n(${sorted[0].name})`;
     if (sorted[1]) document.getElementById('podium-name-2').innerText = `${sorted[1].id}\n(${sorted[1].name})`;
     if (sorted[2]) document.getElementById('podium-name-3').innerText = `${sorted[2].id}\n(${sorted[2].name})`;
+    for(let r=1; r<=3; r++) { if(sorted[r-1]) document.getElementById(`podium-value-${r}`).innerText = sorted[r-1].v.toFixed(6); }
 
-    for(let r=1; r<=3; r++) {
-        if(sorted[r-1]) document.getElementById(`podium-value-${r}`).innerText = sorted[r-1].v.toFixed(6);
-    }
-
-    // LIST TABEL PEMERINGKATAN BAWAH PODIUM
     sorted.forEach((row, index) => {
         let rank = index + 1;
         let badgeColor = rank <= 5 ? 'bg-purple-100 text-purple-800 font-extrabold border border-purple-200' : 'bg-gray-100 text-gray-600';
         let recText = rank <= 5 ? 'Direkomendasikan (Top 5)' : 'Cadangan / Tidak Lolos';
-        
-        let rowBg = '';
-        if(rank === 1) rowBg = 'bg-amber-50/40 font-semibold';
-        else if(rank === 2) rowBg = 'bg-slate-50/60';
-        else if(rank === 3) rowBg = 'bg-orange-50/30';
+        let rowBg = rank === 1 ? 'bg-amber-50/40 font-semibold' : rank === 2 ? 'bg-slate-50/60' : rank === 3 ? 'bg-orange-50/30' : '';
         
         tbody.innerHTML += `
             <tr class="border-b border-purple-100/60 hover:bg-purple-50/30 transition ${rowBg}">
-                <td class="p-3 text-center font-black text-slate-700">
-                    ${rank === 1 ? '🥇 1' : rank === 2 ? '🥈 2' : rank === 3 ? '🥉 3' : rank}
-                </td>
+                <td class="p-3 text-center font-black text-slate-700">${rank === 1 ? '🥇 1' : rank === 2 ? '🥈 2' : rank === 3 ? '🥉 3' : rank}</td>
                 <td class="p-3 font-semibold text-slate-600 font-mono">${row.id}</td>
                 <td class="p-3 font-medium text-slate-800">${row.name}</td>
                 <td class="p-3 font-mono font-black text-purple-600 text-base">${row.v.toFixed(6)}</td>
@@ -631,15 +580,9 @@ function renderRankingTable(data) {
     });
 }
 
-// ALERTS SYSTEM
 function showAlert(message, type = 'info') {
     const container = document.getElementById('alert-container');
     const color = type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-purple-50 text-purple-900 border-purple-200';
-    container.innerHTML = `
-        <div class="mb-4 p-4 border rounded-xl text-sm font-medium flex justify-between items-center ${color} shadow-xs">
-            <span><i class="fas fa-info-circle mr-2 text-purple-600"></i> ${message}</span>
-            <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100"><i class="fas fa-times"></i></button>
-        </div>
-    `;
+    container.innerHTML = `<div class="mb-4 p-4 border rounded-xl text-sm font-medium flex justify-between items-center ${color} shadow-xs"><span><i class="fas fa-info-circle mr-2 text-purple-600"></i> ${message}</span><button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100"><i class="fas fa-times"></i></button></div>`;
     setTimeout(() => { if (container.firstElementChild) container.firstElementChild.remove(); }, 4000);
 }
