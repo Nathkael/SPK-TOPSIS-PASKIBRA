@@ -3,73 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPK Seleksi Paskibra - TOPSIS</title>
+    <title>SPK Seleksi Paskibra - TOPSIS Premium</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js CDN for Donut Visualizations -->
+    <!-- Chart.js CDN for Advanced Visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-purple-50/30 font-sans antialiased text-gray-800">
+<body class="bg-purple-50/20 font-sans antialiased text-gray-800">
 
     <div class="flex h-screen overflow-hidden">
-        <!-- SIDEBAR LEFT (Kahoot Deep Purple Theme) -->
+        <!-- SIDEBAR LEFT -->
         <aside class="w-64 bg-indigo-950 text-purple-200 flex flex-col justify-between shadow-2xl z-10 shrink-0 h-full">
             <div>
                 <!-- Header Sidebar -->
                 <div class="p-5 border-b border-indigo-900/60 flex items-center space-x-3">
-                    <div class="bg-purple-600 p-2 rounded-lg text-white shadow-md">
+                    <div class="bg-purple-600 p-2 rounded-xl text-white shadow-md animate-pulse">
                         <i class="fas fa-flag text-lg"></i>
                     </div>
                     <div>
-                        <h1 class="text-white font-bold text-sm leading-tight">SPK Seleksi Paskibra</h1>
+                        <h1 class="text-white font-black text-sm leading-tight">SPK PASKIBRA</h1>
                         <span class="text-xs text-purple-400 font-medium">Metode TOPSIS</span>
                     </div>
                 </div>
                 
                 <!-- Navigasi -->
-                <nav class="p-4 space-y-1">
-                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 hover:bg-indigo-900/50 hover:text-white">
+                <nav class="p-4 space-y-1.5">
+                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-indigo-900/50 hover:text-white">
                         <i class="fas fa-chart-pie w-5"></i> <span>Dashboard</span>
                     </button>
-                    <button onclick="switchView('kriteria')" id="nav-kriteria" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 hover:bg-indigo-900/50 hover:text-white">
+                    <button onclick="switchView('kriteria')" id="nav-kriteria" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-indigo-900/50 hover:text-white">
                         <i class="fas fa-sliders-h w-5"></i> <span>Data Kriteria</span>
                     </button>
-                    <button onclick="switchView('alternatif')" id="nav-alternatif" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 hover:bg-indigo-900/50 hover:text-white">
-                        <i class="fas fa-users w-5"></i> <span>Data Alternatif</span>
+                    <button onclick="switchView('alternatif')" id="nav-alternatif" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-indigo-900/50 hover:text-white">
+                        <i class="fas fa-users w-5"></i> <span>Data Calon Anggota</span>
                     </button>
-                    <button onclick="switchView('penilaian')" id="nav-penilaian" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 hover:bg-indigo-900/50 hover:text-white">
-                        <i class="fas fa-user-check w-5"></i> <span>Data Pendaftar</span>
+                    <button onclick="switchView('penilaian')" id="nav-penilaian" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-indigo-900/50 hover:text-white">
+                        <i class="fas fa-user-check w-5"></i> <span>Penilaian Matriks</span>
                     </button>
-                    <button onclick="switchView('perhitungan')" id="nav-perhitungan" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 hover:bg-indigo-900/50 hover:text-white">
+                    <button onclick="switchView('perhitungan')" id="nav-perhitungan" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-indigo-900/50 hover:text-white">
                         <i class="fas fa-calculator w-5"></i> <span>TOPSIS</span>
                     </button>
-                    <button onclick="switchView('ranking')" id="nav-ranking" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-medium transition duration-200 hover:bg-indigo-900/50 hover:text-white">
+                    <button onclick="switchView('ranking')" id="nav-ranking" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-indigo-900/50 hover:text-white">
                         <i class="fas fa-trophy w-5"></i> <span>Hasil Ranking</span>
                     </button>
                 </nav>
             </div>
 
-            <!-- Footer Sidebar -->
-            <div class="p-4 border-t border-indigo-900/60 bg-indigo-950/80 text-xs">
-                <p class="text-slate-500 font-semibold uppercase tracking-wider mb-1">Kelompok 1</p>
-                <p class="text-slate-400 font-medium">Rummy Ramzha Ramadhan - 2113231036</p>
-                <p class="text-slate-400 font-medium">Iqbal Muhammad Yanuar - 2113231110</p>
+            <!-- Footer Sidebar Informative Card -->
+            <div class="p-4 m-3 rounded-xl bg-indigo-900/40 border border-indigo-800/50 shadow-inner">
+                <p class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1.5 flex items-center">
+                    <i class="fas fa-graduation-cap mr-1.5"></i> Kelompok 1
+                </p>
+                <div class="text-xs text-purple-200 font-semibold space-y-0.5">
+                    <p class="truncate">Rummy Ramzha Ramadhan</p>
+                    <p class="truncate">2113231036</p>
+                    <p class="truncate"></p>
+                    <p class="truncate">Iqbal Muhammad Yanuar</p>
+                    <p class="truncate">2113231110</p>
+                </div>
             </div>
         </aside>
 
         <!-- MAIN CONTENT RIGHT -->
-        <main class="flex-1 bg-purple-50/20 flex flex-col min-w-0 h-full">
-            <!-- Header Top Bar -->
-            <header class="bg-white border-b border-purple-100 h-16 flex items-center justify-between px-8 shrink-0 shadow-xs">
-                <div class="flex items-center space-x-2">
-                    <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard</h2>
+        <main class="flex-1 bg-slate-50 flex flex-col min-w-0 h-full">
+            <!-- Header Top Bar (Updated Layout) -->
+            <header class="bg-white border-b border-purple-100/80 h-20 flex items-center justify-between px-8 shrink-0 shadow-xs">
+                <div>
+                    <h2 id="page-title" class="text-xl font-black text-slate-800 tracking-tight">Dashboard</h2>
+                    <p id="page-welcome-desc" class="text-xs text-slate-400 font-medium mt-0.5">Selamat Datang</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="resetToDefaultData()" class="px-3 py-1.5 border border-purple-200 text-purple-700 bg-purple-50/50 rounded-xl text-xs font-semibold hover:bg-purple-100/70 transition duration-150">
-                        <i class="fas fa-undo mr-1"></i> Reset Data Jurnal
+                    <button onclick="resetToDefaultData()" class="px-3.5 py-2 border border-purple-200 text-purple-700 bg-purple-50/50 rounded-xl text-xs font-bold hover:bg-purple-100 hover:shadow-sm transition-all duration-200">
+                        <i class="fas fa-undo mr-1.5"></i> Reset Data Jurnal
                     </button>
                 </div>
             </header>
@@ -78,69 +86,153 @@
             <div class="p-8 flex-1 overflow-y-auto space-y-6">
                 <div id="alert-container"></div>
                 
-                <!-- VIEW: DASHBOARD -->
+                <!-- VIEW: DASHBOARD (PREMIUM OVERHAUL) -->
                 <div id="view-dashboard" class="view-content hidden space-y-6">
-                    <!-- Top Stats Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Card: Jumlah Kriteria -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100/60 p-6 flex items-center space-x-4">
-                            <div class="bg-purple-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-md">
-                                <i class="fas fa-sliders-h text-xl"></i>
+                    
+
+
+                    <!-- 2. Advanced Stat Information Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100/80 p-5 flex items-center space-x-4">
+                            <div class="bg-purple-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                                <i class="fas fa-sliders-h text-lg"></i>
                             </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-400">Jumlah Kriteria</p>
-                                <h3 id="dash-count-kriteria" class="text-3xl font-black text-slate-800 mt-0.5">0</h3>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-400 truncate">Jumlah Kriteria</p>
+                                <h3 id="stat-kriteria" class="text-2xl font-black text-slate-800 mt-0.5">0</h3>
                             </div>
                         </div>
-                        
-                        <!-- Card: Jumlah Alternatif -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100/60 p-6 flex items-center space-x-4">
-                            <div class="bg-emerald-500 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-md">
-                                <i class="fas fa-users text-xl"></i>
+                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100/80 p-5 flex items-center space-x-4">
+                            <div class="bg-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                                <i class="fas fa-users text-lg"></i>
                             </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-400">Jumlah Alternatif</p>
-                                <h3 id="dash-count-alternatif" class="text-3xl font-black text-slate-800 mt-0.5">0</h3>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-400 truncate">Jumlah Alternatif</p>
+                                <h3 id="stat-alternatif" class="text-2xl font-black text-slate-800 mt-0.5">0</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100/80 p-5 flex items-center space-x-4">
+                            <div class="bg-emerald-500 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                                <i class="fas fa-crown text-lg"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-semibold text-slate-400 truncate">Kandidat Terbaik</p>
+                                <h3 id="stat-kandidat-terbaik" class="text-base font-black text-emerald-600 mt-1 truncate">-</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100/80 p-5 flex items-center space-x-4">
+                            <div class="bg-amber-500 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                                <i class="fas fa-star text-lg"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-400 truncate">Preferensi Tertinggi</p>
+                                <h3 id="stat-preferensi-tinggi" class="text-2xl font-black text-slate-800 mt-0.5">0.0000</h3>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Row 2: Ringkasan Hasil TOPSIS Card -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-purple-100 p-6">
-                        <h3 class="text-base font-bold text-slate-800">Ringkasan Hasil TOPSIS</h3>
-                        <p id="dash-info-tersedia" class="text-xs text-gray-400 mt-0.5 flex items-center"><i class="far fa-list-alt text-purple-600 mr-1.5"></i> 0 hasil tersedia</p>
-                        
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-center">
-                            <!-- Left Sub-card: Total Kandidat Box -->
-                            <div class="lg:col-span-3 bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-2xl p-6 flex flex-col justify-center items-center text-center min-h-[160px] shadow-md">
-                                <h2 id="dash-box-total" class="text-4xl font-black">0</h2>
-                                <p class="text-xs font-medium mt-2 opacity-90">Total Kandidat</p>
-                            </div>
-
-                            <!-- Middle Column: Top 3 Kandidat Terbaik List -->
-                            <div class="lg:col-span-5 space-y-3" id="dash-top3-container">
-                                <p class="text-xs font-bold text-gray-400 flex items-center justify-center lg:justify-start mb-1">👑 Top 3 Kandidat Terbaik</p>
-                            </div>
-
-                            <!-- Right Column: Top 10 Nilai Preferensi Chart Box -->
-                            <div class="lg:col-span-4 flex flex-col items-center">
-                                <p class="text-xs font-bold text-gray-400 flex items-center mb-2">📊 Top 10 Nilai Preferensi</p>
-                                <div class="w-40 h-40 flex items-center justify-center relative">
-                                    <canvas id="donutChartCanvas"></canvas>
+                    <!-- 3. Progress Sistem Panel -->
+                    <div class="bg-white rounded-2xl border border-purple-100 p-5 shadow-sm">
+                        <p class="text-[11px] uppercase font-bold text-purple-400 tracking-wider mb-4"><i class="fas fa-tasks mr-1.5"></i>Progress Alur Kerja Sistem</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                            <div id="prog-step-1" class="p-3 rounded-xl border flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center bg-slate-100 text-slate-600">1</span>
+                                    <span class="text-xs font-bold text-slate-700">Data Kriteria</span>
                                 </div>
+                                <span class="indicator-status text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="prog-step-2" class="p-3 rounded-xl border flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center bg-slate-100 text-slate-600">2</span>
+                                    <span class="text-xs font-bold text-slate-700">Data Alternatif</span>
+                                </div>
+                                <span class="indicator-status text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="prog-step-3" class="p-3 rounded-xl border flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center bg-slate-100 text-slate-600">3</span>
+                                    <span class="text-xs font-bold text-slate-700">Data Penilaian</span>
+                                </div>
+                                <span class="indicator-status text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="prog-step-4" class="p-3 rounded-xl border flex items-center justify-between transition-all duration-300">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-6 h-6 rounded-lg font-bold text-xs flex items-center justify-center bg-slate-100 text-slate-600">4</span>
+                                    <span class="text-xs font-bold text-slate-700">Kalkulasi TOPSIS</span>
+                                </div>
+                                <span class="indicator-status text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 4. Leaderboard & Horizontal Bar Chart Layout -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Leaderboard Desain Premium Leaderboard Top 3 -->
+                        <div class="lg:col-span-5 bg-white rounded-2xl border border-purple-100 p-5 shadow-sm space-y-3 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800 flex items-center"><i class="fas fa-medal text-amber-500 mr-2"></i>Leaderboard Top 3 Calon Paskibra</h4>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Kompetensi penugasan berperingkat tertinggi.</p>
+                            </div>
+                            <div class="space-y-3 my-4" id="dash-leaderboard-container">
+                                <!-- Dynamic Leaderboard Elements Injected Here -->
+                            </div>
+                            <button onclick="switchView('ranking')" class="w-full text-center text-xs font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 py-2 rounded-xl transition-all duration-200">Buka Seluruh Pemeringkatan</button>
+                        </div>
+
+                        <!-- Horizontal Bar Chart Top 10 Preferensi -->
+                        <div class="lg:col-span-7 bg-white rounded-2xl border border-purple-100 p-5 shadow-sm flex flex-col">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800 flex items-center"><i class="fas fa-chart-bar text-purple-600 mr-2"></i>Top 10 Sebaran Nilai Preferensi</h4>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Perbandingan performa antar matriks nilai relatif.</p>
+                            </div>
+                            <div class="flex-1 min-h-[220px] mt-4 relative">
+                                <canvas id="horizontalBarChartCanvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Ringkasan Perhitungan Panel -->
+                    <div class="bg-white rounded-2xl border border-purple-100 p-5 shadow-sm">
+                        <p class="text-[11px] uppercase font-bold text-purple-400 tracking-wider mb-3.5"><i class="fas fa-calculator mr-1.5"></i>Ringkasan Komparasi Statistik Matematika</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                <span class="block text-[10px] font-semibold text-slate-400">Total Kandidat</span>
+                                <span id="summary-total-kandidat" class="text-lg font-black text-slate-800 block mt-0.5">0</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                <span class="block text-[10px] font-semibold text-slate-400">Jumlah Penilaian</span>
+                                <span id="summary-jumlah-penilaian" class="text-lg font-black text-slate-800 block mt-0.5">0</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                <span class="block text-[10px] font-semibold text-slate-400">Preferensi Tertinggi</span>
+                                <span id="summary-pref-tertinggi" class="text-lg font-black text-purple-600 block mt-0.5">0.0000</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                <span class="block text-[10px] font-semibold text-slate-400">Preferensi Terendah</span>
+                                <span id="summary-pref-terendah" class="text-lg font-black text-rose-500 block mt-0.5">0.0000</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                <span class="block text-[10px] font-semibold text-slate-400">Nilai Rata-rata</span>
+                                <span id="summary-pref-rata" class="text-lg font-black text-blue-600 block mt-0.5">0.0000</span>
+                            </div>
+                            <div class="p-3 bg-purple-50 border border-purple-100 rounded-xl flex items-center justify-center flex-col">
+                                <span class="block text-[9px] font-bold text-purple-500 uppercase tracking-wider">Status Hitung</span>
+                                <span id="summary-status-hitung" class="text-xs font-extrabold text-purple-700 bg-white border border-purple-200 rounded-full px-2.5 py-0.5 shadow-2xs mt-1">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <!-- PRINCIPAL CARD WRAPPER FOR OTHER VIEWS -->
+                <!-- MAIN CARD WRAPPER FOR OTHER VIEW SEGMENTS -->
                 <div id="main-card-container" class="bg-white rounded-2xl shadow-sm border border-purple-100 p-6 min-h-[500px]">
                     
                     <!-- VIEW: DATA KRITERIA -->
                     <div id="view-kriteria" class="view-content hidden space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-lg font-bold text-slate-800">Manajemen Parameter & Bobot</h3>
-                            <button onclick="addNewKriteria()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center"><i class="fas fa-plus mr-1.5"></i> Tambah Kriteria</button>
+                            <button onclick="addNewKriteria()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center"><i class="fas fa-plus mr-1.5"></i> Tambah Kriteria</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-sm">
@@ -164,7 +256,7 @@
                     <div id="view-alternatif" class="view-content hidden">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-bold text-slate-800">Daftar Nama Calon Anggota</h3>
-                            <button onclick="addNewAlternatif()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center"><i class="fas fa-plus mr-1.5"></i> Tambah Alternatif</button>
+                            <button onclick="addNewAlternatif()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center"><i class="fas fa-plus mr-1.5"></i> Tambah Alternatif</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-sm">
@@ -182,7 +274,7 @@
 
                     <!-- VIEW: PENILAIAN MATRIKS -->
                     <div id="view-penilaian" class="view-content hidden">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4">Data Pendaftar Calon Anggota</h3>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Matriks Keputusan Awal</h3>
                         <div class="overflow-x-auto max-w-full">
                             <table class="text-left border-collapse text-xs min-w-full">
                                 <thead>
@@ -196,13 +288,26 @@
                     <!-- VIEW: PERHITUNGAN DIA -->
                     <div id="view-perhitungan" class="view-content hidden space-y-8">
                         <div>
-                            <h3 class="text-base font-bold text-slate-800 mb-2">1. Matriks Normalisasi Terbobot</h3>
+                            <h3 class="text-base font-bold text-purple-700 mb-2">1. Matriks Ternormalisasi</h3>
                             <div class="overflow-x-auto max-w-full">
                                 <table class="text-left border-collapse text-xs min-w-full">
                                     <thead>
-                                        <tr id="table-v-head" class="bg-purple-50/50 text-slate-600 border-b border-purple-100"></tr>
+                                        <tr id="table-r-head" class="bg-purple-100/50 text-slate-700 border-b border-purple-200"></tr>
+                                        <tr id="table-r-pembagi" class="bg-amber-50 text-amber-800 font-bold border-b border-amber-200 font-mono"></tr>
                                     </thead>
-                                    <tbody id="table-v-body"></tbody>
+                                    <tbody id="table-r-body" class="font-mono"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-base font-bold text-purple-700 mb-2">2. Matriks Normalisasi Terbobot</h3>
+                            <div class="overflow-x-auto max-w-full">
+                                <table class="text-left border-collapse text-xs min-w-full">
+                                    <thead>
+                                        <tr id="table-v-head" class="bg-purple-100/50 text-slate-700 border-b border-purple-200"></tr>
+                                    </thead>
+                                    <tbody id="table-v-body" class="font-mono"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -219,7 +324,7 @@
                         </div>
 
                         <div class="pt-4 border-t border-purple-100">
-                            <h3 class="text-base font-bold text-slate-800 mb-2">2. Jarak Solusi Ideal</h3>
+                            <h3 class="text-base font-bold text-slate-800 mb-2">3. Jarak Solusi Ideal</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse text-sm">
                                     <thead>
@@ -238,11 +343,11 @@
                     <!-- VIEW: HASIL RANKING -->
                     <div id="view-ranking" class="view-content hidden space-y-6">
                         <div class="flex justify-between items-center mb-4 no-print">
-                            <h3 class="text-lg font-bold text-slate-800">Hasil Pemeringkatan Akhir (Nilai Preferensi $V$)</h3>
-                            <button onclick="window.print()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center"><i class="fas fa-print mr-1.5"></i> Cetak Laporan</button>
+                            <h3 class="text-lg font-bold text-slate-800">Hasil Pemeringkatan Akhir</h3>
+                            <button onclick="window.print()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center"><i class="fas fa-print mr-1.5"></i> Cetak Laporan</button>
                         </div>
 
-                        <!-- PODIUM VISUAL TOP 3 (ALA KAHOOT) -->
+                        <!-- PODIUM VISUAL TOP 3 -->
                         <div class="bg-indigo-950 rounded-2xl p-6 text-white flex justify-center items-end space-x-4 min-h-[280px] pt-12 shadow-2xl relative overflow-hidden my-4">
                             <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
                             
@@ -275,7 +380,7 @@
                             </div>
                         </div>
 
-                        <!-- TABEL MAIN DAFTAR RANKING -->
+                        <!-- TABEL DAFTAR Pemeringkatan -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-sm">
                                 <thead>
@@ -283,7 +388,7 @@
                                         <th class="p-3 font-bold w-20 text-center">Rank</th>
                                         <th class="p-3 font-semibold w-24">Kode</th>
                                         <th class="p-3 font-semibold">Nama Calon Anggota</th>
-                                        <th class="p-3 font-semibold font-mono">Nilai Kedekatan ($V_i$)</th>
+                                        <th class="p-3 font-semibold font-mono">Nilai Kedekatan</th>
                                         <th class="p-3 font-semibold text-center w-56">Status Rekomendasi</th>
                                     </tr>
                                 </thead>
@@ -299,6 +404,5 @@
 
     <!-- JS Logic Core -->
     <script src="script.js"></script>
-    <script src="style.css"></script>
 </body>
 </html>
